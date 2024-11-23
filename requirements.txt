@@ -31,3 +31,4 @@ huggingface_hub
 requests
 crewai
 crewai_tools
+neo4j

@@ -32,3 +32,6 @@ requests
 crewai
 crewai_tools
 neo4j
+numexpr
+boto3
+awscli

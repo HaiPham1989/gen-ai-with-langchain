@@ -9,7 +9,6 @@ import streamlit as st
 from langchain.embeddings import BedrockEmbeddings
 from langchain.llms.bedrock import Bedrock
 
-
 ## Data Ingestion
 import numpy as np
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -21,7 +20,6 @@ from langchain.vectorstores import FAISS
 ## LLM Model
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-
 
 ## Bedrock Clients
 bedrock = boto3.client(
@@ -55,7 +53,7 @@ def get_claude_llm():
     llm = Bedrock(
         model_id="anthropic.claude-v2",
         client=bedrock,
-        model_kwargs={'max_tokens': 512})
+        model_kwargs={})
     
     return llm
 
@@ -117,11 +115,18 @@ def main():
                 
     if st.button("Claude Output"):
         with st.spinner("Processing..."):
-            faiss_index = FAISS.load_local("faiss_index", bedrock_embeddings)
+            faiss_index = FAISS.load_local("faiss_index", bedrock_embeddings, allow_dangerous_deserialization=True)
             llm = get_claude_llm()
             
             st.write(get_response_llm(llm, faiss_index, user_question))
             st.success("Done")
+    
+    if st.button("Llama 2 Output"):
+        with st.spinner("Processing..."):
+            faiss_index = FAISS.load_local("faiss_index", bedrock_embeddings, allow_dangerous_deserialization=True)
+            llm = get_llama2_llm()
             
+            st.write(get_response_llm(llm, faiss_index, user_question))
+            st.success("Done")        
 if __name__ == "__main__":
     main()

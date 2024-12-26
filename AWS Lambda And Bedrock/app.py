@@ -1,7 +1,6 @@
 import boto3
 import botocore.config
 import json
-import response
 from datetime import datetime
 
 def blog_generate_using_bedrock(blogtopic:str) -> str:
@@ -9,7 +8,10 @@ def blog_generate_using_bedrock(blogtopic:str) -> str:
     Assistant:[/INST]
     """
     
-    body={
+    prompt = f"""Act as Shakespaere and write poem on machine Learning
+    """
+    
+    body = {
         "prompt":prompt,
         "max_gen_len":512,
         "temperature":0.5,
@@ -18,12 +20,15 @@ def blog_generate_using_bedrock(blogtopic:str) -> str:
     
     try:
         bedrock = boto3.client(
-        service_name="bedrock-runtime",
-        region_name='us-east-1',
-        config=botocore.config.Config(read_timeout=300,retires={'max_attempts':3})
+            service_name="bedrock-runtime",
+            region_name='us-east-1',
+            config=botocore.config.Config(read_timeout=300,retries={'max_attempts':3})
         )
-        bedrock.invoke_model(body=json.dumps(body), modelId="meta.llama3-1-8b-instruct-v1:0")
         
+        response = bedrock.invoke_model(body=json.dumps(body), 
+                                        modelId="meta.llama3-1-8b-instruct-v1:0",
+                                        contentType="application/json",
+                                        accept="application/json")
         response_content = response.get('body').read()
         response_data = json.loads(response_content)
         print(response_data)
@@ -43,7 +48,7 @@ def save_blog_details_s3(s3_key, s3_bucket, generate_blog):
         print("Error when saving the code to s3")
     
 def lambda_handler(event, context):
-    # TODO implement
+    
     event = json.loads(event['body'])
     blogtopic = event['blog_topic']
     
@@ -52,7 +57,13 @@ def lambda_handler(event, context):
     if generate_blog:
         current_time = datetime.now().strftime('%H%M%S')
         s3_key = f"blog-output/{current_time}.txt"
-        s3_bucket = "aws_bedrock_course1"
+        s3_bucket = "awsbedrockcoursehaitest1"
         save_blog_details_s3(s3_key, s3_bucket, generate_blog)
     else:
         print("No blog was generated")
+        
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": "Blog generated successfully"})
+        }
